@@ -22,15 +22,20 @@ Engineering production software, infrastructure and intelligent systems across m
 
 ## 03 / Major Moons
 
-[![Tattvatech-CRM project card](assets/moons/01.svg)](https://github.com/Rishit1769/Tattvatech-CRM)
-
-[![EMQPGS project card](assets/moons/02.svg)](https://github.com/Newer1107/EMQPGS)
-
-[![Airport-Weather-Forecast project card](assets/moons/03.svg)](https://github.com/Rishit1769/Airport-Weather-Forecast)
-
-[![CoE-Main project card](assets/moons/04.svg)](https://github.com/Rishit1769/CoE-Main)
-
-[![Coding-Workforce- project card](assets/moons/05.svg)](https://github.com/Rishit1769/Coding-Workforce-)
+<table>
+  <tr>
+    <td width="50%"><a href="https://github.com/Rishit1769/Tattvatech-CRM"><img src="assets/moons/01.svg" width="340" alt="Tattvatech-CRM project card"></a></td>
+    <td width="50%"><a href="https://github.com/Newer1107/EMQPGS"><img src="assets/moons/02.svg" width="340" alt="EMQPGS project card"></a></td>
+  </tr>
+  <tr>
+    <td width="50%"><a href="https://github.com/Rishit1769/Airport-Weather-Forecast"><img src="assets/moons/03.svg" width="340" alt="Airport-Weather-Forecast project card"></a></td>
+    <td width="50%"><a href="https://github.com/Rishit1769/CoE-Main"><img src="assets/moons/04.svg" width="340" alt="CoE-Main project card"></a></td>
+  </tr>
+  <tr>
+    <td width="50%"><a href="https://github.com/Rishit1769/Coding-Workforce-"><img src="assets/moons/05.svg" width="340" alt="Coding-Workforce- project card"></a></td>
+    <td width="50%"></td>
+  </tr>
+</table>
 
 ## 04 / Planetary Composition
 

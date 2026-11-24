@@ -24,8 +24,10 @@ The generator fetches the entire snapshot before writing any file. API errors th
 
 ## Layout and limitations
 
-The hero is 1200 × 720 SVG with a responsive Markdown image. Pinned cards are one per line to remain readable on narrow mobile views. SVG `image` elements embed the latest avatar. SVGs include no remote resources or credentials. The graphical language markers are colored planets rather than third-party icon downloads, keeping every asset self-contained. Public-only contributions may differ from totals visible to the profile owner when private contributions are enabled.
+The hero is 1200 × 720 SVG with a responsive Markdown image. Pinned cards use a two-column HTML table. The last cell stays empty when there is an odd number of pins. SVG `image` elements embed the latest avatar. SVGs include no remote resources or credentials. The graphical language markers are colored planets rather than third-party icon downloads, keeping every asset self-contained. Public-only contributions may differ from totals visible to the profile owner when private contributions are enabled.
 
 ## Configuration
 
 Edit `data/config.json` for visual density, limits, timing, inclusion rules, and professional text. Pinned repository names are never configured. After editing, run the tests and regenerate.
+
+The Sun uses GitHub’s REST profile totals for followers, following, and public repositories. Public stars sum GitHub’s per-repository star counts across all public owned repositories, including forks and archived repositories. Language totals keep their separate repository filters.

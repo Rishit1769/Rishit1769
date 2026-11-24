@@ -2,7 +2,7 @@
   "username": "rishit1769",
   "max_planets": 5,
   "max_moons_per_planet": 4,
-  "max_comets": 3,
+  "max_comets": 6,
   "orbital_base_seconds": 23,
   "orbital_step_seconds": 9,
   "planet_radius_min": 15,

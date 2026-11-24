@@ -19,6 +19,24 @@ GRAPHQL = """query Universe($login: String!, $from: DateTime!, $to: DateTime!) {
 }"""
 
 
+def recent_pushes(client, username, limit):
+    events = client.pages(f"/users/{quote(username)}/events/public")
+    latest = {}
+    for event in events:
+        repo = event.get("repo") or {}
+        name = repo.get("name", "").casefold()
+        if event.get("type") != "PushEvent" or not name or not event.get("created_at"):
+            continue
+        key = repo.get("id") or name
+        if key not in latest or event["created_at"] > latest[key]["created_at"]:
+            latest[key] = event
+    ordered = sorted(latest.values(), key=lambda event: event["created_at"], reverse=True)
+    unique = {}
+    for event in ordered:
+        unique.setdefault(event["repo"]["name"].casefold(), event)
+    return list(unique.values())[:max(0, min(limit, 6))]
+
+
 def collect_public_preview(client: GitHubClient, config: dict, today: date | None = None):
     """Create an honest first-render preview when local GraphQL auth is unavailable.
 
@@ -28,7 +46,12 @@ def collect_public_preview(client: GitHubClient, config: dict, today: date | Non
     today = today or date.today()
     username = config["username"]
     profile = client.rest(f"/users/{quote(username)}")
-    repos = included_repositories(list(client.pages(f"/users/{quote(username)}/repos", {"type": "owner", "sort": "full_name"})), {**config["repositories"], "username": username})
+    public_repos = included_repositories(
+        client.pages(f"/users/{quote(username)}/repos", {"type": "owner", "sort": "full_name"}),
+        {"username": username, "include_forks": True, "include_archived": True},
+    )
+    public_stars = sum(repo["stargazers_count"] for repo in public_repos)
+    repos = included_repositories(public_repos, {**config["repositories"], "username": username})
     breakdowns = [client.rest(f"/repos/{quote(username)}/{quote(repo['name'])}/languages") for repo in repos]
     # GitHub Linguist is GitHub's public language-color source.
     linguist = client.request("https://raw.githubusercontent.com/github-linguist/linguist/master/lib/linguist/languages.yml", binary=True).decode()
@@ -40,13 +63,13 @@ def collect_public_preview(client: GitHubClient, config: dict, today: date | Non
             current = line[:-1]
         elif current and (match := re.match(r"^  color: ['\"]?(#[0-9a-fA-F]{6})", line)):
             colors[current] = match.group(1)
-    events = client.rest(f"/users/{quote(username)}/events/public", {"per_page": 100})
+    pushes = recent_pushes(client, username, config["max_comets"])
     avatar = client.request(profile["avatar_url"], binary=True)
     if not avatar or len(avatar) > 2_000_000:
         raise GitHubError("Avatar is empty or too large")
-    return {"profile": profile, "repos": repos, "pinned": [],
+    return {"profile": profile, "public_stars": public_stars, "repos": repos, "pinned": [],
             "languages": top_languages(language_totals(breakdowns), config["max_planets"], colors),
-            "days": [], "metrics": {}, "pushes": [e for e in events if e.get("type") == "PushEvent"][:config["max_comets"]],
+            "days": [], "metrics": {}, "pushes": pushes,
             "avatar": avatar, "as_of": today.isoformat(), "authenticated": False}
 
 
@@ -56,7 +79,12 @@ def collect(client: GitHubClient, config: dict, today: date | None = None):
     if not username.replace("-", "").isalnum():
         raise ValueError("Invalid GitHub username")
     profile = client.rest(f"/users/{quote(username)}")
-    repos = included_repositories(list(client.pages(f"/users/{quote(username)}/repos", {"type": "owner", "sort": "full_name"})), {**config["repositories"], "username": username})
+    public_repos = included_repositories(
+        client.pages(f"/users/{quote(username)}/repos", {"type": "owner", "sort": "full_name"}),
+        {"username": username, "include_forks": True, "include_archived": True},
+    )
+    public_stars = sum(repo["stargazers_count"] for repo in public_repos)
+    repos = included_repositories(public_repos, {**config["repositories"], "username": username})
     breakdowns = []
     colors = {}
     for repo in repos:
@@ -81,8 +109,7 @@ def collect(client: GitHubClient, config: dict, today: date | None = None):
             if query_start <= date.fromisoformat(day["date"]) <= today]
     if not days:
         raise GitHubError("Contribution calendar is empty")
-    events = client.rest(f"/users/{quote(username)}/events/public", {"per_page": 100})
-    pushes = [e for e in events if e.get("type") == "PushEvent"][:config["max_comets"]]
+    pushes = recent_pushes(client, username, config["max_comets"])
     avatar = client.request(profile["avatar_url"], binary=True)
     if not avatar or len(avatar) > 2_000_000:
         raise GitHubError("Avatar is empty or too large")
@@ -93,7 +120,7 @@ def collect(client: GitHubClient, config: dict, today: date | None = None):
         if lang.get("name") and lang.get("color"):
             colors[lang["name"]] = lang["color"]
     languages = top_languages(totals, config["max_planets"], colors)
-    return {"profile": profile, "repos": repos, "pinned": pinned, "languages": languages,
+    return {"profile": profile, "public_stars": public_stars, "repos": repos, "pinned": pinned, "languages": languages,
             "days": [d for d in days if date.fromisoformat(d["date"]) >= start],
             "metrics": contribution_metrics(days, today, today.year), "pushes": pushes,
             "avatar": avatar, "as_of": today.isoformat(), "authenticated": True}

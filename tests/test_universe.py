@@ -17,7 +17,8 @@ CONFIG = json.loads((ROOT / "data/config.json").read_text())
 
 def fixture():
     return {
-        "profile": {"name": "Rishit Singh", "location": "Mumbai, India", "followers": 2, "public_repos": 2},
+        "profile": {"name": "Rishit Singh", "location": "Mumbai, India", "followers": 2, "following": 6, "public_repos": 2},
+        "public_stars": 4,
         "repos": [{"name": "alpha", "language": "Python", "stargazers_count": 3},
                   {"name": "beta", "language": None, "stargazers_count": 1}],
         "pinned": [{"name": "alpha", "description": "A < test & project", "url": "https://github.com/rishit1769/alpha",
@@ -79,7 +80,7 @@ class ClientTests(unittest.TestCase):
                 raise AssertionError(path)
 
             def pages(self, path, params=None):
-                return iter([{"name": "repo", "node_id": "R_1", "language": "Python",
+                return iter([{"name": "repo", "node_id": "R_1", "language": "Python", "stargazers_count": 3,
                               "owner": {"login": "rishit1769"}, "fork": False, "archived": False}])
 
             def graphql(self, query, variables):
@@ -108,8 +109,11 @@ class RenderTests(unittest.TestCase):
             out_a = generate(snap, CONFIG, Path(a))
             out_b = generate(snap, CONFIG, Path(b))
             self.assertEqual({p.relative_to(a): v for p, v in out_a.items()}, {p.relative_to(b): v for p, v in out_b.items()})
-            self.assertIn('](https://github.com/rishit1769/alpha)', out_a[Path(a) / "README.md"])
+            self.assertIn('href="https://github.com/rishit1769/alpha"', out_a[Path(a) / "README.md"])
             self.assertLess(out_a[Path(a) / "README.md"].find('assets/moons/01.svg'), out_a[Path(a) / "README.md"].find('assets/moons/02.svg'))
+            profile = out_a[Path(a) / "assets/the-sun.svg"]
+            for metric in ("FOLLOWERS  2", "FOLLOWING  6", "PUBLIC REPOS  2", "PUBLIC STARS  4"):
+                self.assertIn(metric, profile)
             for path, content in out_a.items():
                 self.assertNotIn("GITHUB_TOKEN", content)
                 if path.suffix == ".svg":
@@ -119,6 +123,44 @@ class RenderTests(unittest.TestCase):
         snap = fixture()
         snap["pinned"] = []
         self.assertIn("No repositories are currently pinned", render_readme(snap, CONFIG))
+
+
+class LayoutRegressionTests(unittest.TestCase):
+    def test_moons_have_two_cells_and_preserve_links(self):
+        from scripts.main import moon_table
+        pins = [{"name": f"repo-{i}", "url": f"https://github.com/user/repo-{i}"} for i in range(6)]
+        for count in (5, 6):
+            table = ET.fromstring("\n".join(moon_table(pins[:count])).replace("></a>", "/></a>"))
+            self.assertEqual([len(row) for row in table], [2, 2, 2])
+            self.assertEqual([a.attrib["href"] for a in table.iter("a")], [p["url"] for p in pins[:count]])
+
+    def test_long_card_text_and_orbit_bounds(self):
+        from scripts.svg import project_card, orbit_axes
+        item = dict(fixture()["pinned"][0], name="long-repository-"*9, description="A long description "*40)
+        root = ET.fromstring(project_card(item, 1))
+        for node in root.findall(".//{*}text"):
+            if node.attrib["text-anchor"] == "start":
+                size = int(node.attrib["font-size"])
+                self.assertLess(int(node.attrib["x"]) + len(node.text) * size * .67, 450)
+        rx, ry = orbit_axes(5, 6)
+        self.assertLess(rx + 85, 600)
+        self.assertLess(ry + 80, 360)
+
+    def test_pushes_deduplicate_and_rank_across_pages(self):
+        from scripts.data import recent_pushes
+        class Client(GitHubClient):
+            def rest(self, path, params=None):
+                def push(name, timestamp, repo_id):
+                    return {"type": "PushEvent", "repo": {"id": repo_id, "name": name}, "created_at": timestamp}
+                if params["page"] == 1:
+                    return [push("u/a", "2026-01-01T00:00:00Z", 1)] * 100
+                return [push("u/b", "2026-01-02T00:00:00Z", 2),
+                        push("u/renamed-a", "2026-01-03T00:00:00Z", 1)]
+        self.assertEqual([e["repo"]["name"] for e in recent_pushes(Client(), "u", 6)], ["u/renamed-a", "u/b"])
+        class Empty(Client):
+            def rest(self, path, params=None):
+                return []
+        self.assertEqual(recent_pushes(Empty(), "u", 6), [])
 
 
 if __name__ == "__main__":

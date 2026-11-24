@@ -15,6 +15,25 @@ from .svg import solar, profile_card, project_card, languages_card, contribution
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def moon_table(pinned):
+    lines = ["<table>"]
+    for index, item in enumerate(pinned, 1):
+        url = item["url"]
+        if not url.startswith("https://github.com/"):
+            raise ValueError("Unexpected pinned repository URL")
+        if index % 2:
+            lines.append("  <tr>")
+        lines.append(
+            f'    <td width="50%"><a href="{esc(url)}"><img src="assets/moons/{index:02d}.svg" '
+            f'width="340" alt="{esc(item["name"])} project card"></a></td>'
+        )
+        if index % 2 == 0:
+            lines.append("  </tr>")
+    if len(pinned) % 2:
+        lines.extend(['    <td width="50%"></td>', "  </tr>"])
+    return lines + ["</table>", ""]
+
+
 def render_readme(snapshot, config):
     pinned = snapshot["pinned"]
     pro = config["professional"]
@@ -47,13 +66,7 @@ def render_readme(snapshot, config):
     if not snapshot.get("authenticated", True):
         lines.extend(['Pinned repositories will appear after the first authenticated workflow run.', ''])
     elif pinned:
-        for i, item in enumerate(pinned, 1):
-            url = item["url"]
-            if not url.startswith(f'https://github.com/{config["username"]}/'):
-                # GitHub can pin others' repositories, so accept GitHub repository URLs only.
-                if not url.startswith("https://github.com/"):
-                    raise ValueError("Unexpected pinned repository URL")
-            lines.extend([f'[![{esc(item["name"])} project card](assets/moons/{i:02d}.svg)]({url})', ''])
+        lines.extend(moon_table(pinned))
     else:
         lines.extend(['No repositories are currently pinned on GitHub.', ''])
     lines.extend([
