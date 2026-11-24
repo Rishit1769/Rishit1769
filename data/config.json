@@ -1,0 +1,28 @@
+{
+  "username": "rishit1769",
+  "max_planets": 5,
+  "max_moons_per_planet": 4,
+  "max_comets": 3,
+  "orbital_base_seconds": 23,
+  "orbital_step_seconds": 9,
+  "planet_radius_min": 15,
+  "planet_radius_max": 34,
+  "star_density": 110,
+  "heatmap_weeks": 26,
+  "repositories": {"include_forks": false, "include_archived": false},
+  "professional": {
+    "name": "Rishit Singh",
+    "headline": "Software Engineer × ML Engineer",
+    "location": "Mumbai, India",
+    "bio": "Engineering production software, infrastructure and intelligent systems across machine learning, LLMs and AI agents."
+  },
+  "stations": [
+    {"name": "Languages", "items": ["TypeScript", "JavaScript", "Python", "Java", "C", "HTML/CSS", "Bash"]},
+    {"name": "Frontend", "items": ["Next.js", "React", "Tailwind", "Vite"]},
+    {"name": "Backend", "items": ["Node.js", "Express", "REST APIs", "WebSockets", "Authentication"]},
+    {"name": "Data", "items": ["PostgreSQL", "MySQL", "Redis", "Firebase", "MinIO"]},
+    {"name": "Infrastructure", "items": ["Docker", "AWS", "Nginx", "Linux", "GitHub Actions"]},
+    {"name": "ML", "items": ["PyTorch", "TensorFlow", "Scikit-learn", "Pandas", "NumPy"]},
+    {"name": "AI agents & automation", "items": ["LLM applications", "RAG", "Agentic workflows", "AI automation"]}
+  ]
+}
