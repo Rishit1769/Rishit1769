@@ -31,10 +31,6 @@ Engineering production software, infrastructure and intelligent systems across m
     <td width="50%"><a href="https://github.com/Rishit1769/Airport-Weather-Forecast"><img src="assets/moons/03.svg" width="340" alt="Airport-Weather-Forecast project card"></a></td>
     <td width="50%"><a href="https://github.com/Rishit1769/CoE-Main"><img src="assets/moons/04.svg" width="340" alt="CoE-Main project card"></a></td>
   </tr>
-  <tr>
-    <td width="50%"><a href="https://github.com/Rishit1769/Coding-Workforce-"><img src="assets/moons/05.svg" width="340" alt="Coding-Workforce- project card"></a></td>
-    <td width="50%"></td>
-  </tr>
 </table>
 
 ## 04 / Planetary Composition
